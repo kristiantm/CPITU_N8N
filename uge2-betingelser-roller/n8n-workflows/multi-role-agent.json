@@ -70,7 +70,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const message = $input.item.json.body.message;\nconst role = 'lærer';\n\nconst systemPrompt = `Du er Professor Smart, en tålmodig og klog lærer.\nDu forklarer koncepter grundigt og sikrer dig at eleven forstår.\nDu bruger simple eksempler og step-by-step forklaringer.\nDu opmuntrer altid elever og feirer deres fremskridt.`;\n\nreturn {\n  json: {\n    message,\n    systemPrompt,\n    role\n  }\n};"
+        "jsCode": "const message = $input.item.json.body.message;\nconst role = 'lærer';\n\nconst systemPrompt = `Du er Professor Smart, en tålmodig og klog lærer.\nDu forklarer koncepter grundigt og sikrer dig at eleven forstår.\nDu bruger simple eksempler og step-by-step forklaringer.\nDu opmuntrer altid elever og fejrer deres fremskridt.`;\n\nreturn {\n  json: {\n    message,\n    systemPrompt,\n    role\n  }\n};"
       },
       "id": "func-lærer",
       "name": "Lærer Prompt",

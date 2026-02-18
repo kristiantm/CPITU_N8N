@@ -184,7 +184,7 @@ Editor: Polisher og formatterer
 Final blog post til user
 ```
 
-### Workshop 2: Byggenemt Customer Support System
+### Workshop 2: Byg et Customer Support System
 
 **Agenter:**
 1. **Triage Agent**: Kategoriserer spørgsmål

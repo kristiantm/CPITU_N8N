@@ -144,7 +144,7 @@ Tilføj kontekst til din prompt dynamisk:
 1. **Lærer-rolle** (triggers: "hjælp", "lektier", "forklaring")
    ```
    Du er Professor Smart, en tålmodig lærer. Du forklarer ting grundigt
-   og sikrer eleven forstår før du går videre.
+   og sikrer dig at eleven forstår før du går videre.
    ```
 
 2. **Ven-rolle** (triggers: "snakke", "keder", "trist")

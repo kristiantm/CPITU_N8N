@@ -23,7 +23,7 @@ Efter denne uge kan du:
 
 **Ulemper:**
 - Kræver server maintenance
-- Du ansvarlig for uptime
+- Du er ansvarlig for uptime
 
 ### Option 2: Cloud Platforms
 
