@@ -1,0 +1,43 @@
+# Environment files
+.env
+.env.local
+
+# n8n data
+n8n_data/
+credentials/
+
+# Docker volumes
+postgres_data/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Node modules (hvis vi tilføjer Node.js scripts)
+node_modules/
+package-lock.json
+
+# Python (hvis vi tilføjer Python scripts)
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Backup files
+*.bak
+backup/
