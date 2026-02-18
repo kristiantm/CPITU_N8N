@@ -1,0 +1,173 @@
+{
+  "name": "Uge 2 - Multi-role Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "smart-chat",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "rules": [
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.body.message.toLowerCase() }}",
+                    "operation": "contains",
+                    "value2": "hjælp,lektier,forklaring"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "lærer"
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.body.message.toLowerCase() }}",
+                    "operation": "contains",
+                    "value2": "snakke,keder,trist"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "ven"
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.body.message.toLowerCase() }}",
+                    "operation": "contains",
+                    "value2": "quiz,test,spørgsmål"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "quiz"
+            }
+          ]
+        },
+        "fallbackOutput": "extra",
+        "options": {}
+      },
+      "id": "switch",
+      "name": "Role Detector",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $input.item.json.body.message;\nconst role = 'lærer';\n\nconst systemPrompt = `Du er Professor Smart, en tålmodig og klog lærer.\nDu forklarer koncepter grundigt og sikrer dig at eleven forstår.\nDu bruger simple eksempler og step-by-step forklaringer.\nDu opmuntrer altid elever og feirer deres fremskridt.`;\n\nreturn {\n  json: {\n    message,\n    systemPrompt,\n    role\n  }\n};"
+      },
+      "id": "func-lærer",
+      "name": "Lærer Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 180]
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $input.item.json.body.message;\nconst role = 'ven';\n\nconst systemPrompt = `Du er BestBuddy, en lyttende og empatisk ven.\nDu er støttende og forstående.\nDu stiller spørgsmål for at forstå situationen bedre.\nDu opmuntrer og hjælper folk med at se det positive.`;\n\nreturn {\n  json: {\n    message,\n    systemPrompt,\n    role\n  }\n};"
+      },
+      "id": "func-ven",
+      "name": "Ven Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $input.item.json.body.message;\nconst role = 'quiz';\n\nconst systemPrompt = `Du er QuizWiz, en energisk quiz-master.\nDu laver sjove og engagerende quizzer.\nDu giver hints når folk sidder fast.\nDu fejrer rigtige svar med entusiasme!`;\n\nreturn {\n  json: {\n    message,\n    systemPrompt,\n    role\n  }\n};"
+      },
+      "id": "func-quiz",
+      "name": "Quiz Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $input.item.json.body.message;\nconst role = 'general';\n\nconst systemPrompt = `Du er en venlig og hjælpsom AI-assistent.\nDu svarer kort og præcist på spørgsmål.\nDu er altid høflig og positiv.`;\n\nreturn {\n  json: {\n    message,\n    systemPrompt,\n    role\n  }\n};"
+      },
+      "id": "func-general",
+      "name": "General Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 540]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"openai/gpt-3.5-turbo\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"{{ $json.systemPrompt }}\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $json.message }}\"\n    }\n  ]\n}"
+      },
+      "id": "openrouter",
+      "name": "OpenRouter API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [840, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1",
+          "name": "OpenRouter Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \n  \"response\": $json.choices[0].message.content,\n  \"role\": $('Switch').item.json.role || 'general'\n} }}"
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1040, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Role Detector", "type": "main", "index": 0}]]
+    },
+    "Role Detector": {
+      "main": [
+        [{"node": "Lærer Prompt", "type": "main", "index": 0}],
+        [{"node": "Ven Prompt", "type": "main", "index": 0}],
+        [{"node": "Quiz Prompt", "type": "main", "index": 0}],
+        [{"node": "General Prompt", "type": "main", "index": 0}]
+      ]
+    },
+    "Lærer Prompt": {
+      "main": [[{"node": "OpenRouter API", "type": "main", "index": 0}]]
+    },
+    "Ven Prompt": {
+      "main": [[{"node": "OpenRouter API", "type": "main", "index": 0}]]
+    },
+    "Quiz Prompt": {
+      "main": [[{"node": "OpenRouter API", "type": "main", "index": 0}]]
+    },
+    "General Prompt": {
+      "main": [[{"node": "OpenRouter API", "type": "main", "index": 0}]]
+    },
+    "OpenRouter API": {
+      "main": [[{"node": "Respond to Webhook", "type": "main", "index": 0}]]
+    }
+  }
+}
