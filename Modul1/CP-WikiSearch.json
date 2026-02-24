@@ -1,0 +1,143 @@
+{
+  "name": "CP-WikiSearch",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        128,
+        -48
+      ],
+      "id": "cba356b2-2903-496a-8357-176c2f140833",
+      "name": "When chat message received",
+      "webhookId": "d36de827-c8c7-4d71-9a29-48e06b596b48"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant. Answer the users questions using the tools available. If not able to answer after 5 iterations, return a partial answer telling why you are unable to resolve the request."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        336,
+        -48
+      ],
+      "id": "bcc998ae-919b-439e-95df-772aee0fde7e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        160
+      ],
+      "id": "8e7e257d-4642-4d8a-8101-086f53526209",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "y9Is8bbDCtZfzzI0",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+      "typeVersion": 1,
+      "position": [
+        576,
+        160
+      ],
+      "id": "2fa2536f-1032-4ac2-8e65-de13f727111e",
+      "name": "Wikipedia"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        160
+      ],
+      "id": "dfe045dc-3294-449b-b407-ebac0b8d7a68",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "b1fc360e-7c25-48f8-993e-9e5947082249",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "64135f585531f960899ef69834c8d0ecd13f91dd4ee152e1eb4ce33acaa0aebc"
+  },
+  "id": "3ytyDq_UNU7g9X74JxYIO",
+  "tags": []
+}
