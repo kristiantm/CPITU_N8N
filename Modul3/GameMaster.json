@@ -1,0 +1,171 @@
+{
+  "name": "My workflow 3",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "lastNode"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f62ff7fa-2d34-4a74-840b-95a91e5099a5",
+      "name": "When chat message received",
+      "webhookId": "2d9afad9-4b8b-40cf-8c45-d177d589b488"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d5e9752d-bff6-4a12-83cd-9e68554e9db4",
+              "name": "bane",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "id": "7e79f788-08c7-43b0-b1f1-1303f0654275",
+              "name": "liv",
+              "value": 100,
+              "type": "number"
+            },
+            {
+              "id": "f50efe37-ee9d-45eb-aeec-2eeb7e0e474e",
+              "name": "maxBaner",
+              "value": 5,
+              "type": "number"
+            },
+            {
+              "id": "cbeb9d82-77f0-431f-93fc-6dcc9afae985",
+              "name": "harVundet",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "9c1765a4-7628-405f-8e68-d2e56787893c",
+      "name": "GameStats"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When chat message received').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "=Du er game master i en episk dungeon crawler. Guide eventyren gennem præcist {{ $json.maxBaner }} monster kampe, fulgt af et endeligt skattekammer.\n\nRegler for spillet:\n- Spilleren starter med {{ $json.liv }} livspoint\n- Hver kamp har et unikt monster med den egen personlighed og kampstil\n- Spilleren kan vælge ANGRIB, FORSVAR og SPECIALANGREB hver runde\n- Monstere kan give 10-25 skade når de angriber successfuldt\n- Spilleren giver 15-30 skade når de angriber successfuldt\n- FORSVAR reducerer skade til spilleren med 50%\n- SPECIALANGREB er kraftfulde men kan kun bruges een gang i hver kamp\n- Tæl kamp nummeret (1-{{ $json.maxBaner }}) og annoncer det\n- Efter du har vundet over all {{ $json.maxBaner }} monstre, beskriv skattekammeret med fantastisk rov\n\nSTIL:\n- Vær dramatisk og beskriv alt i en vild stil\n- Gør hvert monster unikt (gobling, skelet etc.)\n- Beskriv handelingen i kampe\n- Fejr sejre og varm op om næste kamp\n- Når spilleren når skattekammeret beskriv 3 legendariske skatte de finder\n\nStart med med byde spilleren velkommen til labyrinten og beskriv det første monster vi møder."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "42c57ef3-6766-4d54-b5a2-97e19b080e32",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        288,
+        208
+      ],
+      "id": "e22c7715-ad7d-4d10-9294-e192737b170e",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "yyrlme2RJFunFFSN",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        432,
+        208
+      ],
+      "id": "79a98904-a277-4ad7-a252-f6882e973f04",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "GameStats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GameStats": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "3d6ebcce-f943-49e7-8fae-f9e99a442ff0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9c6810535e319fc0e716a37ecaadcee946874f34c7b32ed7ac8189d9c00cfd44"
+  },
+  "id": "3W328rZhMxf8D2DOMeMXn",
+  "tags": []
+}
