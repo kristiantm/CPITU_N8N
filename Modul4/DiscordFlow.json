@@ -1,0 +1,296 @@
+{
+  "name": "DiscordFlow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        -176
+      ],
+      "id": "d51d2eb7-589c-4f35-bd4b-b6b046c86e06",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "1475957923698970797",
+          "mode": "list",
+          "cachedResultName": "CPITU N8N",
+          "cachedResultUrl": "https://discord.com/channels/1475957923698970797"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1475957924445815001",
+          "mode": "list",
+          "cachedResultName": "generel",
+          "cachedResultUrl": "https://discord.com/channels/1475957923698970797/1475957924445815001"
+        },
+        "content": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        208,
+        96
+      ],
+      "id": "ddb27e7d-33dd-4305-936f-b2d202316a30",
+      "name": "Send a message",
+      "webhookId": "df25898e-39f2-4c11-86ff-0f61a0e6a8b5",
+      "credentials": {
+        "discordBotApi": {
+          "id": "K17CK80vN8kEeeyU",
+          "name": "Discord Bot account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Tell a story about a chicken - format it as a discord message. Max 1000 charecters",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -320,
+        32
+      ],
+      "id": "591edded-dce0-4bac-93be-8f7dca541119",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        176
+      ],
+      "id": "49d33742-5440-4cb5-8045-9a39c2ec51ec",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tK0fmiwwUO8eWDVa",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -176,
+        176
+      ],
+      "id": "10c9c6ff-7aba-4a1e-8bc5-97b297e9bc9b",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "getAll",
+        "guildId": {
+          "__rl": true,
+          "value": "1475957923698970797",
+          "mode": "list",
+          "cachedResultName": "CPITU N8N",
+          "cachedResultUrl": "https://discord.com/channels/1475957923698970797"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1475957924445815001",
+          "mode": "list",
+          "cachedResultName": "generel",
+          "cachedResultUrl": "https://discord.com/channels/1475957923698970797/1475957924445815001"
+        },
+        "limit": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        -176
+      ],
+      "id": "d9b262e9-7ed0-4d64-8cde-28453a7ea3fb",
+      "name": "Get many messages",
+      "webhookId": "0d9c5a9b-c4da-40f7-8266-29d3074cc608",
+      "credentials": {
+        "discordBotApi": {
+          "id": "K17CK80vN8kEeeyU",
+          "name": "Discord Bot account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Answer this discord message. Be kind and gentle:\n{{ $json.content }}",
+        "options": {
+          "systemMessage": "You are a helpful discord assistant. Make small stories out of messages you recieve. At most 500 charecters. "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        48,
+        -176
+      ],
+      "id": "a8f2fca1-6cc7-4afc-83a9-cf21df905e38",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        32,
+        -48
+      ],
+      "id": "0e91d1f6-9485-40b0-aaa9-2a0639e05082",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tK0fmiwwUO8eWDVa",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "1475957923698970797",
+          "mode": "list",
+          "cachedResultName": "CPITU N8N",
+          "cachedResultUrl": "https://discord.com/channels/1475957923698970797"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1475957924445815001",
+          "mode": "list",
+          "cachedResultName": "generel",
+          "cachedResultUrl": "https://discord.com/channels/1475957923698970797/1475957924445815001"
+        },
+        "content": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -192
+      ],
+      "id": "844bb3ad-4bb5-44e1-aaec-36df527e6885",
+      "name": "Send a message1",
+      "webhookId": "df25898e-39f2-4c11-86ff-0f61a0e6a8b5",
+      "credentials": {
+        "discordBotApi": {
+          "id": "K17CK80vN8kEeeyU",
+          "name": "Discord Bot account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ce71c1fa-f177-4aa9-8044-87a5ea79e9d8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "64135f585531f960899ef69834c8d0ecd13f91dd4ee152e1eb4ce33acaa0aebc"
+  },
+  "id": "uU7tVms55z0de9TF",
+  "tags": []
+}

@@ -1,0 +1,223 @@
+{
+  "name": "AI Game Master Dungeon Crawler with Combat and Treasure",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "lastNode"
+        }
+      },
+      "id": "b982f1c1-b01a-4ee9-8ea8-1bd63c93e665",
+      "name": "Dungeon Crawler Chat Interface",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        864,
+        208
+      ],
+      "webhookId": "91e2d344-69ce-4318-928e-37ccf6857fd1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "currentEncounter",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "id": "id-2",
+              "name": "playerHealth",
+              "value": 100,
+              "type": "number"
+            },
+            {
+              "id": "id-3",
+              "name": "monstersDefeated",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "id": "id-4",
+              "name": "totalEncounters",
+              "value": 5,
+              "type": "number"
+            },
+            {
+              "id": "id-5",
+              "name": "hasWon",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7eeefd91-7bf0-4783-8373-61a704c88094",
+      "name": "Initialize Game State",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1088,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Dungeon Crawler Chat Interface').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "You are the Game Master for an epic dungeon crawler adventure! Guide the player through exactly 5 monster encounters, followed by a final treasure room.\n\nYou have the following tools:\n- monsterlist (a table of monsters that can be found in the dungeon - fetch it before describing the encounter)\n\nGAME RULES:\n- The player starts with 100 health points\n- Each encounter features a unique monster with its own personality and combat style\n- Du har en liste af monstre der kan hentes fra monsterliste med monsternavn, min-max hp og min-max damage.\n- Player can choose to ATTACK, DEFEND, or use SPECIAL ABILITY each turn\n- Monsters deal damage in the range damage_min to damage_max on successful attacks\n- Player deals 15-30 damage on successful attacks\n- DEFEND reduces incoming damage by 50%\n- SPECIAL ABILITY is powerful but can only be used once per encounter\n- Track the encounter number (1-5) and announce it clearly\n- After defeating all 5 monsters, describe the treasure room with amazing loot\n\nSTYLE:\n- Be dramatic and immersive with vivid descriptions\n- Make each monster unique (goblin, skeleton, troll, dark mage, dragon)\n- Describe combat actions cinematically\n- Celebrate victories and build tension during fights\n- When player reaches the treasure room, describe 3 legendary items they find\n\nStart by welcoming the player to the dungeon entrance and describing the first monster encounter!"
+        }
+      },
+      "id": "009f8226-6595-4961-a512-4756540de4b1",
+      "name": "Game Master AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1312,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.9
+        }
+      },
+      "id": "31637d97-eb51-4966-b51c-9aea9130bcb3",
+      "name": "OpenAI GPT Game Master",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1248,
+        432
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "himFJhYKmu1NCphY",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 20
+      },
+      "id": "0c779243-b04a-4094-b9f1-f42671b61154",
+      "name": "Game Progress Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1376,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Monsterliste",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "I4eVXeA3glInmPC6",
+          "mode": "list",
+          "cachedResultName": "monstre",
+          "cachedResultUrl": "/projects/sDxDdBNwEqwAou8i/datatables/I4eVXeA3glInmPC6"
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
+      "position": [
+        1504,
+        432
+      ],
+      "id": "735710e1-577e-4db5-8adf-7af6788e7a61",
+      "name": "Get row(s) in Data table"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Dungeon Crawler Chat Interface": {
+      "main": [
+        [
+          {
+            "node": "Initialize Game State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initialize Game State": {
+      "main": [
+        [
+          {
+            "node": "Game Master AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI GPT Game Master": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Game Master AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Game Progress Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Game Master AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Game Master AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s) in Data table": {
+      "ai_tool": [
+        [
+          {
+            "node": "Game Master AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "7decb5a1-6cc5-4ad4-b90a-2b907deb3bd9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "64135f585531f960899ef69834c8d0ecd13f91dd4ee152e1eb4ce33acaa0aebc"
+  },
+  "id": "gds1hWjtyy5w4sB_XLDOj",
+  "tags": []
+}

@@ -1,0 +1,211 @@
+{
+  "name": "CP-DiscordBotWikiAgent",
+  "nodes": [
+    {
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [0, 0],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "discord-get-messages",
+      "name": "Get Discord Messages",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [220, 0],
+      "parameters": {
+        "authentication": "botToken",
+        "resource": "message",
+        "operation": "getAll",
+        "channelId": {
+          "__rl": true,
+          "value": "YOUR_CHANNEL_ID",
+          "mode": "id"
+        },
+        "returnAll": false,
+        "limit": 25,
+        "options": {}
+      }
+    },
+    {
+      "id": "if-not-bot",
+      "name": "Is Human Question?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [440, 0],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": false,
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "not-bot",
+              "leftValue": "={{ !$json.author.bot }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "has-question",
+              "leftValue": "={{ $json.content }}",
+              "rightValue": "?",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "set-prepare",
+      "name": "Prepare Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [660, -100],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ci",
+              "name": "chatInput",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            },
+            {
+              "id": "mid",
+              "name": "messageId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "cid",
+              "name": "channelId",
+              "value": "={{ $json.channel_id }}",
+              "type": "string"
+            },
+            {
+              "id": "user",
+              "name": "authorName",
+              "value": "={{ $json.author.username }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "ai-agent",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [880, -100],
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a Discord bot named WikiBot. A user asked a question in a Discord channel. Search Wikipedia to find the answer. Be concise and Discord-friendly (under 1900 characters). Start your response by directly answering the question."
+        }
+      }
+    },
+    {
+      "id": "openrouter-model",
+      "name": "OpenRouter Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [760, 100],
+      "parameters": {
+        "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+        "options": {}
+      },
+      "credentials": {
+        "openRouterApi": {
+          "id": "yyrlme2RJFunFFSN",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "id": "wikipedia-tool",
+      "name": "Wikipedia",
+      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+      "typeVersion": 1,
+      "position": [880, 100],
+      "parameters": {
+        "toolDescription": "Search Wikipedia for factual information about topics, people, places, events, and concepts."
+      }
+    },
+    {
+      "id": "discord-reply",
+      "name": "Reply on Discord",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [1100, -100],
+      "parameters": {
+        "authentication": "botToken",
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Prepare Input').item.json.channelId }}",
+          "mode": "id"
+        },
+        "content": "={{ $json.output }}",
+        "options": {
+          "message_reference": "={{ $('Prepare Input').item.json.messageId }}"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{ "node": "Get Discord Messages", "type": "main", "index": 0 }]]
+    },
+    "Get Discord Messages": {
+      "main": [[{ "node": "Is Human Question?", "type": "main", "index": 0 }]]
+    },
+    "Is Human Question?": {
+      "main": [
+        [{ "node": "Prepare Input", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Prepare Input": {
+      "main": [[{ "node": "AI Agent", "type": "main", "index": 0 }]]
+    },
+    "AI Agent": {
+      "main": [[{ "node": "Reply on Discord", "type": "main", "index": 0 }]]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [[{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "Wikipedia": {
+      "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "OFYcUgDBXwhKUHb5",
+  "tags": []
+}
