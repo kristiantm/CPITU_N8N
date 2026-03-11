@@ -1,0 +1,87 @@
+{
+  "name": "CP-LevelMaster",
+  "nodes": [
+    {
+      "id": "exec-trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "parameters": { "inputSource": "passthrough" }
+    },
+    {
+      "id": "levelmaster-agent",
+      "name": "LevelMaster",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [240, 0],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "You are the LevelMaster. You run ONE level of dungeon combat from start to finish.\n\nYou receive: a level number, playerHp, playerGold, playerInventory, and the player's command.\n\nFLOW:\n1. If no monster is active yet (start of level): call MonsterDB with the level number. Introduce the first monster - show its name, HP, and damage range. Show player HP and available commands.\n2. On each combat command, resolve the round:\n   - ATTACK: Player deals 15-25 damage. Monster counterattacks with its damage range.\n   - DEFEND: Player deals 5-10 damage. Monster damage reduced by 50%.\n   - SPECIAL (once per monster): Player deals 30-45 damage. Monster does NOT counterattack.\n   - USE POTION: Heal player 30 HP if Potion in inventory. Monster counterattacks.\n3. When a monster reaches 0 HP: call ItemDB with the monster name to roll loot. Announce drops. Introduce the next monster.\n4. When all 3 monsters are defeated OR playerHp reaches 0:\n   Return a clear summary: CLEARED or DEAD, final playerHp, playerGold, playerInventory.\n\nRULES:\n- Track exact HP - never approximate.\n- SPECIAL resets for each new monster.\n- If playerHp <= 0, stop and report DEAD immediately.\n- Always show player HP and commands (ATTACK, DEFEND, SPECIAL, USE POTION) after every round."
+        }
+      }
+    },
+    {
+      "id": "or-levelmaster",
+      "name": "OpenRouter (LevelMaster)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [100, 220],
+      "parameters": {
+        "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+        "options": {}
+      },
+      "credentials": {
+        "openRouterApi": {
+          "id": "yyrlme2RJFunFFSN",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "id": "monsterdb",
+      "name": "MonsterDB",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [280, 220],
+      "parameters": {
+        "toolDescription": "Returns the 3 monsters for a dungeon level. Input: level number (1, 2 or 3). Returns each monster's name, HP, damage range and XP.",
+        "jsCode": "const level = parseInt(query) || 1;\nconst db = {\n  1: [\n    { name: 'Goblin',   hp: 20, damage: '5-10',  xp: 10 },\n    { name: 'Skeleton', hp: 30, damage: '10-15', xp: 20 },\n    { name: 'Orc',      hp: 50, damage: '15-25', xp: 40 }\n  ],\n  2: [\n    { name: 'Troll',     hp: 45, damage: '12-20', xp: 35 },\n    { name: 'Dark Mage', hp: 35, damage: '18-28', xp: 45 },\n    { name: 'Lich',      hp: 70, damage: '20-35', xp: 70 }\n  ],\n  3: [\n    { name: 'Vampire', hp: 55,  damage: '20-30', xp: 60  },\n    { name: 'Wyvern',  hp: 65,  damage: '22-32', xp: 70  },\n    { name: 'Dragon',  hp: 100, damage: '25-45', xp: 120 }\n  ]\n};\nreturn JSON.stringify({ level, monsters: db[level] || db[1] });"
+      }
+    },
+    {
+      "id": "itemdb",
+      "name": "ItemDB",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [460, 220],
+      "parameters": {
+        "toolDescription": "Rolls random loot drops for a defeated monster. Input: monster name (e.g. Goblin, Dragon). Returns dropped items and gold.",
+        "jsCode": "const monster = (query || '').toLowerCase().trim();\nconst tables = {\n  'goblin':    [{ item: 'Gold', amount: 10, chance: 0.9 }, { item: 'Dagger',          chance: 0.2  }],\n  'skeleton':  [{ item: 'Gold', amount: 15, chance: 0.8 }, { item: 'Shield',          chance: 0.25 }],\n  'orc':       [{ item: 'Gold', amount: 25, chance: 0.9 }, { item: 'Sword',           chance: 0.3  }],\n  'troll':     [{ item: 'Gold', amount: 20, chance: 0.8 }, { item: 'Potion',          chance: 0.4  }],\n  'dark mage': [{ item: 'Gold', amount: 30, chance: 0.7 }, { item: 'Scroll',          chance: 0.35 }],\n  'lich':      [{ item: 'Gold', amount: 50, chance: 1.0 }, { item: 'Magic Staff',     chance: 0.4  }],\n  'vampire':   [{ item: 'Gold', amount: 40, chance: 0.9 }, { item: 'Ring of Shadows', chance: 0.3  }],\n  'wyvern':    [{ item: 'Gold', amount: 45, chance: 0.9 }, { item: 'Scale Armor',     chance: 0.25 }],\n  'dragon':    [{ item: 'Gold', amount: 100, chance: 1.0 }, { item: 'Legendary Sword', chance: 1.0  }]\n};\nconst table = tables[monster] || [{ item: 'Gold', amount: 5, chance: 0.5 }];\nconst drops = [];\nfor (const row of table) {\n  if (Math.random() <= row.chance) {\n    drops.push(row.amount ? `${row.item} x${row.amount}` : row.item);\n  }\n}\nreturn JSON.stringify({ monster, drops: drops.length ? drops : ['Nothing'] });"
+      }
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [[{ "node": "LevelMaster", "type": "main", "index": 0 }]]
+    },
+    "OpenRouter (LevelMaster)": {
+      "ai_languageModel": [[{ "node": "LevelMaster", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "MonsterDB": {
+      "ai_tool": [[{ "node": "LevelMaster", "type": "ai_tool", "index": 0 }]]
+    },
+    "ItemDB": {
+      "ai_tool": [[{ "node": "LevelMaster", "type": "ai_tool", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "meta": {
+    "instanceId": "64135f585531f960899ef69834c8d0ecd13f91dd4ee152e1eb4ce33acaa0aebc"
+  },
+  "id": "YghMVUwlwcaaet1G",
+  "tags": []
+}

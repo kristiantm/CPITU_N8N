@@ -1,0 +1,119 @@
+{
+  "name": "CP-GameMaster2",
+  "nodes": [
+    {
+      "id": "chat-trigger",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [0, 0],
+      "parameters": {
+        "options": { "responseMode": "lastNode" }
+      }
+    },
+    {
+      "id": "gamemaster",
+      "name": "GameMaster",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [280, 0],
+      "parameters": {
+        "options": {
+          "systemMessage": "You are the GameMaster of a 3-level dungeon crawler. You run the FULL GAME LOOP.\n\nYOUR TOOLS:\n- LevelList: Call first to see the dungeon structure. No input needed.\n- LevelMaster: Delegate ALL level combat here. Pass: level number, playerHp, playerGold, playerInventory, and the player's command. Returns CLEARED or DEAD with updated player stats.\n\nPLAYER STATE (you track across all levels):\n- HP: starts at 100\n- Gold: starts at 0\n- Inventory: starts empty\n\nGAME FLOW:\n1. Welcome the player. Ask them to type START.\n2. On START: call LevelList, then call LevelMaster with \"Level 1, playerHp=100, gold=0, inventory=[]\"\n3. Pass every player command (ATTACK, DEFEND, SPECIAL, USE POTION) to LevelMaster with current player state\n4. When LevelMaster returns CLEARED: update player state, announce the triumph, call LevelMaster for the next level\n5. When all 3 levels are CLEARED: declare VICTORY! Show total gold and inventory\n6. When LevelMaster returns DEAD: declare GAME OVER with a dramatic epitaph and final stats\n\nAlways pass accurate current player state to LevelMaster. Be epic and dramatic in all announcements."
+        }
+      }
+    },
+    {
+      "id": "or-gamemaster",
+      "name": "OpenRouter (GameMaster)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [140, 240],
+      "parameters": {
+        "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+        "options": {}
+      },
+      "credentials": {
+        "openRouterApi": {
+          "id": "yyrlme2RJFunFFSN",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "id": "memory",
+      "name": "Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [300, 240],
+      "parameters": { "contextWindowLength": 20 }
+    },
+    {
+      "id": "levellist",
+      "name": "LevelList",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [460, 240],
+      "parameters": {
+        "toolDescription": "Returns the full dungeon structure: 3 levels with names, difficulty, and monster roster. No input needed.",
+        "jsCode": "return JSON.stringify({\n  levels: [\n    { level: 1, name: 'The Upper Dungeon',  difficulty: 'Easy',   monsters: ['Goblin', 'Skeleton', 'Orc'] },\n    { level: 2, name: 'The Shadow Halls',   difficulty: 'Medium', monsters: ['Troll', 'Dark Mage', 'Lich'] },\n    { level: 3, name: \"The Dragon's Lair\",  difficulty: 'Hard',   monsters: ['Vampire', 'Wyvern', 'Dragon'] }\n  ],\n  totalLevels: 3\n});"
+      }
+    },
+    {
+      "id": "levelmaster-tool",
+      "name": "LevelMaster",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [620, 240],
+      "parameters": {
+        "toolDescription": "Runs one full dungeon level. Pass: level number, playerHp, playerGold, playerInventory, and the player combat command. Returns CLEARED or DEAD with final player stats.",
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "YghMVUwlwcaaet1G",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "schema": [
+              {
+                "id": 1,
+                "displayName": "query",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [[{ "node": "GameMaster", "type": "main", "index": 0 }]]
+    },
+    "OpenRouter (GameMaster)": {
+      "ai_languageModel": [[{ "node": "GameMaster", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "Memory": {
+      "ai_memory": [[{ "node": "GameMaster", "type": "ai_memory", "index": 0 }]]
+    },
+    "LevelList": {
+      "ai_tool": [[{ "node": "GameMaster", "type": "ai_tool", "index": 0 }]]
+    },
+    "LevelMaster": {
+      "ai_tool": [[{ "node": "GameMaster", "type": "ai_tool", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "meta": {
+    "instanceId": "64135f585531f960899ef69834c8d0ecd13f91dd4ee152e1eb4ce33acaa0aebc"
+  },
+  "id": "bC5suVjWtHaQCCyN",
+  "tags": []
+}
